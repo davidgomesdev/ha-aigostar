@@ -2,7 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
-[![GitHub Release](https://img.shields.io/github/v/release/MarcoM1993/ha-aigostar?style=for-the-badge)](https://github.com/MarcoM1993/ha-aigostar/releases)
+[![GitHub Release](https://img.shields.io/github/v/release/davidgomesdev/ha-aigostar?style=for-the-badge)](https://github.com/davidgomesdev/ha-aigostar/releases)
 A Home Assistant custom integration for **Aigostar smart bulbs** (TG7100C chipset).
 
 Control your Aigostar lights directly from Home Assistant — no local flashing required. The integration communicates with the same backend as the AigoSmart app.
@@ -30,13 +30,13 @@ Control your Aigostar lights directly from Home Assistant — no local flashing 
 
 ### HACS (Recommended)
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=MarcoM1993&repository=ha-aigostar&category=integration)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=davidgomesdev&repository=ha-aigostar&category=integration)
 
 Click the button above, or manually:
 
 1. Open HACS in Home Assistant
 2. Go to **Integrations** → **⋮** (top right) → **Custom repositories**
-3. Add this repository URL: `https://github.com/MarcoM1993/ha-aigostar`
+3. Add this repository URL: `https://github.com/davidgomesdev/ha-aigostar`
 4. Select **Integration** as the category
 5. Click **Add**, then find **Aigostar Smart Lights** in the list and install it
 6. Restart Home Assistant

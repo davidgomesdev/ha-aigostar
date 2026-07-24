@@ -71,24 +71,29 @@ custom_components/aigostar/
 
 ### Release Process (automated via CI)
 
-Releases are fully automated by `.github/workflows/release.yml`. **Do NOT manually create tags, bump versions, or create GitHub releases.**
+Releases are fully automated by `.github/workflows/release.yml`, which runs [semantic-release](https://semantic-release.gitbook.io/). **Do NOT manually create tags, bump versions, or create GitHub releases.**
 
 How it works:
 1. Push/merge commits to `main` (use conventional commit messages: `feat:`, `fix:`, etc.)
-2. The CI workflow automatically:
-   - Analyzes commit messages since the last tag to determine the version bump (patch/minor/major)
-   - Bumps the version in `manifest.json`
-   - Creates a `chore(release): vX.Y.Z` commit + tag
-   - Creates a GitHub Release with auto-generated changelog
-   - Merges main back into `dev`
-3. Commits starting with `chore(release):` are skipped by the CI to avoid infinite loops
+2. semantic-release automatically:
+   - Determines the last release from git tags and analyzes commits since then
+   - Bumps the version in `manifest.json` (via `semantic-release-replace-plugin`)
+   - Creates a `chore(release): vX.Y.Z` commit + `vX.Y.Z` tag
+   - Creates a GitHub Release with auto-generated release notes
+3. The workflow then merges `main` back into `dev`
+
+Configuration lives in `.releaserc.json`. All git and release operations use the
+built-in `GITHUB_TOKEN` — commits and tags it creates do **not** retrigger the
+workflow, so no anti-recursion guard is needed.
+
+Pushing to `beta` publishes a prerelease (`vX.Y.Z-beta.N`) on the beta channel;
+merge-back to `dev` only happens for `main` releases.
 
 Version bump rules (conventional commits):
 - `fix:` → patch bump (e.g. 1.2.1 → 1.2.2)
 - `feat:` → minor bump (e.g. 1.2.1 → 1.3.0)
 - `feat!:` or `BREAKING CHANGE` → major bump (e.g. 1.2.1 → 2.0.0)
-
-**Important**: When merging to main, ensure the last commit message is NOT `chore(release):` — otherwise the CI will skip the release.
+- commit types that don't map to a release (`chore:`, `docs:`, `ci:`, …) produce no new version
 
 ### Deploy to Home Assistant (dev/test)
 ```bash

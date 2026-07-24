@@ -32,10 +32,10 @@ from .const import (
     HA_BRIGHT_MAX,
     KELVIN_COOL,
     KELVIN_WARM,
-    PROP_BRIGHTNESS,
-    PROP_COLOR_TEMP,
+    PROP_BRIGHTNESS_CANDIDATES,
+    PROP_COLOR_TEMP_CANDIDATES,
     PROP_LIGHT_MODE,
-    PROP_SWITCH,
+    PROP_SWITCH_CANDIDATES,
     SCAN_INTERVAL_SECONDS,
 )
 
@@ -111,6 +111,13 @@ class AigostarLight(LightEntity):
         self._color_temp_k: int  = 4000
         self._available:    bool = online
 
+        # Resolved TSL identifiers for this device. Default to the first
+        # candidate (TG7100C names); refined from the device's reported
+        # properties on the first poll via _resolve_keys().
+        self._key_switch     = PROP_SWITCH_CANDIDATES[0]
+        self._key_brightness = PROP_BRIGHTNESS_CANDIDATES[0]
+        self._key_color_temp = PROP_COLOR_TEMP_CANDIDATES[0]
+
     def update_token(self, new_token: str) -> None:
         """Update the iotToken after a refresh."""
         self._client.iot_token = new_token
@@ -164,13 +171,29 @@ class AigostarLight(LightEntity):
     # Update (polling)
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _pick_key(props: dict, candidates: tuple[str, ...], current: str) -> str:
+        """Return the first candidate identifier present in the reported props,
+        falling back to the current value when none match."""
+        for candidate in candidates:
+            if candidate in props:
+                return candidate
+        return current
+
+    def _resolve_keys(self, props: dict) -> None:
+        """Detect which TSL identifiers this device actually uses."""
+        self._key_switch = self._pick_key(props, PROP_SWITCH_CANDIDATES, self._key_switch)
+        self._key_brightness = self._pick_key(props, PROP_BRIGHTNESS_CANDIDATES, self._key_brightness)
+        self._key_color_temp = self._pick_key(props, PROP_COLOR_TEMP_CANDIDATES, self._key_color_temp)
+
     def _apply_props(self, props: dict) -> None:
-        if PROP_SWITCH in props:
-            self._is_on = bool(props[PROP_SWITCH])
-        if PROP_BRIGHTNESS in props:
-            self._brightness = self._aigo_to_ha_brightness(int(props[PROP_BRIGHTNESS]))
-        if PROP_COLOR_TEMP in props:
-            self._color_temp_k = self._aigo_to_kelvin(int(props[PROP_COLOR_TEMP]))
+        self._resolve_keys(props)
+        if self._key_switch in props:
+            self._is_on = bool(props[self._key_switch])
+        if self._key_brightness in props:
+            self._brightness = self._aigo_to_ha_brightness(int(props[self._key_brightness]))
+        if self._key_color_temp in props:
+            self._color_temp_k = self._aigo_to_kelvin(int(props[self._key_color_temp]))
 
     def update(self) -> None:
         try:
@@ -187,16 +210,16 @@ class AigostarLight(LightEntity):
 
     def turn_on(self, **kwargs: Any) -> None:
         try:
-            items: dict[str, Any] = {PROP_SWITCH: 1}
+            items: dict[str, Any] = {self._key_switch: 1}
 
             if ATTR_BRIGHTNESS in kwargs:
                 ha_b = int(kwargs[ATTR_BRIGHTNESS])
-                items[PROP_BRIGHTNESS] = self._ha_to_aigo_brightness(ha_b)
+                items[self._key_brightness] = self._ha_to_aigo_brightness(ha_b)
                 self._brightness = ha_b
 
             if ATTR_COLOR_TEMP_KELVIN in kwargs:
                 k = int(kwargs[ATTR_COLOR_TEMP_KELVIN])
-                items[PROP_COLOR_TEMP] = self._kelvin_to_aigo(k)
+                items[self._key_color_temp] = self._kelvin_to_aigo(k)
                 items[PROP_LIGHT_MODE] = 0  # white mode
                 self._color_temp_k = k
 
@@ -210,7 +233,7 @@ class AigostarLight(LightEntity):
 
     def turn_off(self, **kwargs: Any) -> None:
         try:
-            self._client.set_properties_sync({PROP_SWITCH: 0})
+            self._client.set_properties_sync({self._key_switch: 0})
             self._is_on     = False
             self._available = True
         except Exception as exc:

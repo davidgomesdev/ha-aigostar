@@ -16,11 +16,16 @@ APP_SECRET = "41fd4a1eb18fa7ace5e2abbbe3867f93"
 CONF_EMAIL       = "email"
 CONF_PASSWORD    = "password"
 
-# TSL properties for Aigostar TG7100C (captured via /thing/tsl/get)
-PROP_SWITCH     = "LightSwitch"       # bool  0=off 1=on
-PROP_BRIGHTNESS = "Brightness"        # int   1-100 (percentage)
-PROP_COLOR_TEMP = "ColorTemperature"  # int   0-100 (0=warm 2700K, 100=cool 6500K)
-PROP_LIGHT_MODE = "LightMode"         # enum  0=white 1=color(RGB)
+# TSL property identifiers differ between Aigostar models, so the light entity
+# resolves the actual identifier at runtime by matching the device's reported
+# properties against these candidate lists (first match wins; order = default).
+#
+#   TG7100C (white CCT):       LightSwitch / Brightness / ColorTemperature
+#   A60 RGB CCT (a1tgw5jbxTS):  powerstate  / brightness / colorTemperature
+PROP_SWITCH_CANDIDATES     = ("LightSwitch", "powerstate")        # bool  0=off 1=on
+PROP_BRIGHTNESS_CANDIDATES = ("Brightness", "brightness")         # int   1-100 (percentage)
+PROP_COLOR_TEMP_CANDIDATES = ("ColorTemperature", "colorTemperature")  # int 0-100 (0=warm, 100=cool)
+PROP_LIGHT_MODE            = "LightMode"                          # enum  0=white 1=color(RGB)
 
 # Kelvin <-> Aigostar percentage conversion
 KELVIN_WARM = 2700   # ColorTemperature = 0
